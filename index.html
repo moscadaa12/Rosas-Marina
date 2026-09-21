@@ -643,7 +643,7 @@
     <div class="extra e6"><img src="img/real6-removebg-preview.png" alt="Arreglo floral"></div>
     <div class="extra e7"><img src="img/real7-removebg-preview.png" alt="Arreglo floral"></div>
     <div class="mensaje" id="mensaje">Toca para tomar tu infusión</div>
-    <audio id="musica" src="musica.mp3" loop preload="auto"></audio>
+    <audio id="musica" src="musica.mp3" loop preload="auto" playsinline></audio>
 
     <script>
         (function () {
@@ -659,15 +659,31 @@
                 'img/real7-removebg-preview.png'
             ];
 
+            var musica = document.getElementById('musica');
+            var audioListo = false;
+            function playMusica() {
+                if (audioListo) return;
+                audioListo = true;
+                musica.currentTime = 0;
+                musica.play().catch(function () {
+                    audioListo = false;
+                    var reintentar = function () {
+                        audioListo = true;
+                        musica.currentTime = 0;
+                        musica.play().catch(function () {
+                            audioListo = false;
+                        });
+                        document.removeEventListener('click', reintentar);
+                    };
+                    document.addEventListener('click', reintentar);
+                });
+            }
+
             function disparar() {
                 if (disparado) return;
                 disparado = true;
 
                 sembrarRamitos();
-
-                var musica = document.getElementById('musica');
-                musica.currentTime = 0;
-                musica.play().catch(function () {});
 
                 var mensaje = document.getElementById('mensaje');
                 mensaje.style.animation = 'mensajeOut 0.6s ease forwards';
@@ -774,7 +790,8 @@
             }
 
             window.addEventListener('pointerdown', disparar);
-            window.addEventListener('click', disparar);
+            document.body.addEventListener('click', playMusica);
+            document.addEventListener('click', disparar);
         })();
     </script>
 </body>
