@@ -663,6 +663,8 @@
                 if (disparado) return;
                 disparado = true;
 
+                sembrarRamitos();
+
                 var musica = document.getElementById('musica');
                 musica.currentTime = 0;
                 musica.play().catch(function () {});
@@ -688,22 +690,37 @@
 
             function sembrarRamitos() {
                 var cont = document.getElementById('ramitos');
-                var n = window.innerWidth < 480 ? 10 : 16;
-                for (var i = 0; i < n; i++) {
-                    var a = document.createElement('span');
-                    a.className = 'ramito';
-                    var img = document.createElement('img');
-                    img.src = FUENTES[Math.floor(Math.random() * FUENTES.length)];
-                    img.alt = '';
-                    a.appendChild(img);
-                    var sz = 42 + Math.random() * 56;
-                    a.style.width = sz + 'px';
-                    a.style.left = (Math.random() * 86 + 4) + '%';
-                    a.style.top = (Math.random() * 86 + 6) + '%';
-                    a.style.setProperty('--op', (0.35 + Math.random() * 0.3).toFixed(2));
-                    a.style.setProperty('--flot', (Math.random() * 2.5).toFixed(2) + 's');
-                    a.style.transform = 'rotate(' + Math.round(Math.random() * 24 - 12) + 'deg)';
-                    cont.appendChild(a);
+                var vw = window.innerWidth;
+                var vh = window.innerHeight;
+                var cols = vw < 480 ? 3 : (vw < 768 ? 4 : 6);
+                var cell = vw / cols;
+                var rows = Math.max(4, Math.min(9, Math.round(vh / cell)));
+                if (cols * rows > 30) {
+                    rows = Math.floor(30 / cols);
+                }
+                for (var r = 0; r < rows; r++) {
+                    for (var c = 0; c < cols; c++) {
+                        var a = document.createElement('span');
+                        a.className = 'ramito';
+                        var img = document.createElement('img');
+                        img.src = FUENTES[Math.floor(Math.random() * FUENTES.length)];
+                        img.alt = '';
+                        a.appendChild(img);
+                        var jx = (Math.random() * 2 - 1) * cell * 0.12;
+                        var jy = (Math.random() * 2 - 1) * cell * 0.12;
+                        var px = (c + 0.5) * cell + jx;
+                        var py = (r + 0.5) * cell + jy * (vh / vw);
+                        px = Math.max(vw * 0.04, Math.min(vw * 0.96, px));
+                        py = Math.max(vh * 0.03, Math.min(vh * 0.96, py));
+                        var sz = Math.max(32, Math.min(108, cell * 0.52));
+                        a.style.width = sz + 'px';
+                        a.style.left = px + 'px';
+                        a.style.top = py + 'px';
+                        a.style.setProperty('--op', (0.32 + Math.random() * 0.24).toFixed(2));
+                        a.style.setProperty('--flot', (Math.random() * 2.5).toFixed(2) + 's');
+                        a.style.transform = 'rotate(' + Math.round(Math.random() * 28 - 14) + 'deg)';
+                        cont.appendChild(a);
+                    }
                 }
             }
 
@@ -758,7 +775,6 @@
 
             window.addEventListener('pointerdown', disparar);
             window.addEventListener('click', disparar);
-            sembrarRamitos();
         })();
     </script>
 </body>
