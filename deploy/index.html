@@ -8,6 +8,7 @@
         html {
             -webkit-text-size-adjust: 100%;
             text-size-adjust: 100%;
+            overflow-x: clip;
         }
         body {
             margin: 0;
@@ -15,6 +16,7 @@
             min-height: 100dvh;
             background-color: #000000;
             touch-action: manipulation;
+            overflow-x: clip;
             -webkit-tap-highlight-color: transparent;
         }
         .escena {
@@ -53,10 +55,10 @@
             top: 50%;
             transform: translate(-50%, -50%);
             z-index: 2;
-            width: auto;
+            width: min(46%, 34vw, 150px);
             height: auto;
-            max-width: min(46%, 34vw, 34vh, 150px);
-            max-height: min(46%, 36vh);
+            aspect-ratio: 6 / 5;
+            object-fit: contain;
             animation: fadeSlideUp 1.2s ease-out forwards;
         }
         .rosas {
@@ -221,18 +223,18 @@
             animation: pulso 2s ease-in-out infinite;
         }
         .titulo-inicial {
-            position: fixed;
+            position: absolute;
             left: 50%;
             top: 50%;
             transform: translate(-50%, -50%);
             width: max-content;
-            max-width: 90vw;
+            max-width: 90%;
             text-align: center;
             color: #ffe27a;
-            font: 700 clamp(1.4rem, 7vw, 2.6rem)/1.2 system-ui, -apple-system, "Segoe UI", sans-serif;
+            font: 700 clamp(1.1rem, 5.5vw, 2rem)/1.2 system-ui, -apple-system, "Segoe UI", sans-serif;
             letter-spacing: 1px;
             text-shadow: 0 0 14px rgba(255, 215, 64, 0.95), 0 0 30px rgba(0, 0, 0, 0.8), 0 2px 6px rgba(0, 0, 0, 0.7);
-            z-index: 10001;
+            z-index: 3;
             pointer-events: none;
             opacity: 0;
             animation: tituloInicialIn 1.2s ease-out forwards;
@@ -527,6 +529,7 @@
                  alt="Ramo de rosas con adorno">
             <img class="taza" src="https://openclipart.org/image/800px/352677"
                  alt="Taza de infusión de manzanilla">
+            <h2 class="titulo-inicial">Toma tu manzanilla</h2>
             <div class="aro-wrap" aria-hidden="true">
                 <span class="aro"></span>
                 <span class="orbita orb1"></span>
@@ -539,8 +542,6 @@
             <span class="palabra" style="--retraso: 3.15s">Marina</span>
         </p>
     </main>
-
-    <h2 class="titulo-inicial">Toma tu manzanilla</h2>
 
     <div class="extra e3"><img src="img/real3-removebg-preview.png" alt="Arreglo floral"></div>
     <div class="extra e4"><img src="img/real4-removebg-preview.png" alt="Arreglo floral"></div>
