@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Infusión de Manzanilla</title>
+    <style>
+        html {
+            -webkit-text-size-adjust: 100%;
+            text-size-adjust: 100%;
+        }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            min-height: 100dvh;
+            background-color: #000000;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .escena {
+            position: relative;
+            z-index: 1;
+            box-sizing: border-box;
+            width: 100%;
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: clamp(10px, 3vh, 26px);
+            padding: clamp(10px, 3vh, 40px) clamp(8px, 4vw, 48px);
+            padding-bottom: max(clamp(10px, 3vh, 40px), env(safe-area-inset-bottom, 0px));
+        }
+        .estrellas {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            overflow: hidden;
+            pointer-events: none;
+        }
+        .estrella {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle, #ffffff 0%, #ffe27a 60%, transparent 100%);
+            box-shadow: 0 0 6px 2px rgba(255, 224, 130, 0.7);
+            opacity: 0;
+            animation: titilar var(--dur) ease-in-out var(--delay) infinite;
+        }
+        .taza {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 2;
+            width: auto;
+            height: auto;
+            max-width: min(46%, 34vw, 34vh, 150px);
+            max-height: min(46%, 36vh);
+            animation: fadeSlideUp 1.2s ease-out forwards;
+        }
+        .rosas {
+            position: relative;
+            z-index: 1;
+            flex: 0 1 auto;
+            min-height: 0;
+            width: min(72vw, 46vh, 440px);
+            aspect-ratio: 1 / 1;
+        }
+        .ramo-img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            opacity: 0;
+        }
+        .rosas::after {
+            content: "";
+            position: absolute;
+            inset: -45%;
+            border-radius: 50%;
+            background: radial-gradient(circle,
+                        rgba(255, 255, 255, 0.95) 0%,
+                        rgba(255, 215, 64, 0.55) 40%,
+                        transparent 72%);
+            opacity: 0;
+            pointer-events: none;
+        }
+        body.activado .ramo-img {
+            animation: destelloFuerte 1.1s cubic-bezier(.15, .8, .25, 1) forwards;
+        }
+        body.activado .rosas::after {
+            animation: destelloLuzFuerte 1.1s ease-out forwards;
+        }
+        .aro-wrap {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 112%;
+            aspect-ratio: 1 / 1;
+            z-index: 2;
+            opacity: 0;
+        }
+        body.activado .aro-wrap {
+            animation: aroAparece 1.1s ease-out forwards,
+                       aroPulso 2.4s ease-in-out 1.2s infinite;
+        }
+        .aro {
+            position: absolute;
+            inset: 0;
+            border: 3px solid rgba(255, 215, 64, 0.9);
+            border-radius: 50%;
+            box-shadow: 0 0 24px rgba(255, 215, 64, 0.7),
+                        inset 0 0 18px rgba(255, 215, 64, 0.35);
+        }
+        .orbita {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 100%;
+            height: 100%;
+        }
+        .orb1 {
+            animation: girar 6s linear infinite;
+        }
+        .orb2 {
+            animation: girar 6s linear infinite reverse;
+        }
+        .orb1::before, .orb2::before {
+            content: "";
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #ffffff, #ffd740);
+            box-shadow: 0 0 10px 4px rgba(255, 215, 64, 0.9);
+        }
+        .orb1::before {
+            top: -6px;
+        }
+        .orb2::before {
+            top: calc(100% - 4px);
+        }
+        .titulo {
+            position: relative;
+            z-index: 5;
+            margin: 0;
+            width: 100%;
+            max-width: 92vw;
+            text-align: center;
+            color: #ffe27a;
+            font: 700 clamp(1.15rem, 6.2vw, 2.4rem)/1.15 system-ui, -apple-system, "Segoe UI", sans-serif;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            text-shadow: 0 0 14px rgba(255, 215, 64, 0.9), 0 2px 6px rgba(0, 0, 0, 0.6);
+        }
+        .palabra {
+            display: inline-block;
+            opacity: 0;
+        }
+        body.activado .titulo .palabra,
+        body.activado .subtitulo .palabra {
+            animation: caer 0.7s cubic-bezier(.3, .7, .4, 1) var(--retraso, 0s) both;
+        }
+        .subtitulo {
+            position: relative;
+            z-index: 5;
+            margin: 0;
+            width: 100%;
+            max-width: 92vw;
+            text-align: center;
+            color: #ffe27a;
+            font: 600 clamp(1rem, 4.8vw, 1.7rem)/1.3 system-ui, -apple-system, "Segoe UI", sans-serif;
+            letter-spacing: 1px;
+            text-shadow: 0 0 12px rgba(255, 215, 64, 0.85), 0 2px 6px rgba(0, 0, 0, 0.6);
+        }
+        @keyframes caer {
+            0% {
+                opacity: 0;
+                transform: translateY(-170px) scale(0.85);
+            }
+            60% {
+                opacity: 1;
+            }
+            80% {
+                transform: translateY(6px) scale(1);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        body.activado .taza {
+            animation: tazaFadeOut 1.1s ease-in forwards;
+        }
+        .flash {
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle at center,
+                        rgba(255, 245, 220, 0.95) 0%,
+                        rgba(255, 215, 64, 0.45) 40%,
+                        transparent 75%);
+            opacity: 0;
+            z-index: 8000;
+            pointer-events: none;
+        }
+        .mensaje {
+            position: fixed;
+            left: 50%;
+            bottom: 16vh;
+            transform: translateX(-50%);
+            color: #ffd75e;
+            font: 600 1.35rem/1.4 system-ui, -apple-system, "Segoe UI", sans-serif;
+            text-align: center;
+            text-shadow: 0 0 12px rgba(255, 215, 64, 0.85);
+            z-index: 10000;
+            pointer-events: none;
+            animation: pulso 2s ease-in-out infinite;
+        }
+        .titulo-inicial {
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: max-content;
+            max-width: 90vw;
+            text-align: center;
+            color: #ffe27a;
+            font: 700 clamp(1.4rem, 7vw, 2.6rem)/1.2 system-ui, -apple-system, "Segoe UI", sans-serif;
+            letter-spacing: 1px;
+            text-shadow: 0 0 14px rgba(255, 215, 64, 0.95), 0 0 30px rgba(0, 0, 0, 0.8), 0 2px 6px rgba(0, 0, 0, 0.7);
+            z-index: 10001;
+            pointer-events: none;
+            opacity: 0;
+            animation: tituloInicialIn 1.2s ease-out forwards;
+        }
+        body.activado .titulo-inicial {
+            animation: tituloInicialOut 0.6s ease forwards;
+        }
+        .extra {
+            position: fixed;
+            z-index: 0;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .extra img {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+        .extra.e3 { left: 6%; top: 13%; width: clamp(60px, 13vw, 120px); --retraso: 0.1s; }
+        .extra.e4 { right: 6%; top: 16%; width: clamp(60px, 13vw, 120px); --retraso: 0.2s; }
+        .extra.e5 { left: 8%; bottom: 14%; width: clamp(66px, 14vw, 126px); --retraso: 0.3s; }
+        .extra.e6 { right: 8%; bottom: 12%; width: clamp(70px, 15vw, 136px); --retraso: 0.4s; }
+        .extra.e7 { left: 50%; top: 50%; width: clamp(96px, 22vw, 180px); transform: translate(-50%, -50%); --retraso: 0.5s; }
+        body.activado .extra {
+            animation: volarDestello 1s cubic-bezier(.2, .6, .3, 1) var(--retraso, 0s) both;
+        }
+        body.activado .extra.e7 {
+            animation-name: volarDestelloCentro;
+        }
+        body.activado .extra img {
+            animation: flotar 3.4s ease-in-out 1.2s infinite;
+        }
+        @keyframes titilar {
+            0%, 100% {
+                opacity: 0.25;
+            }
+            50% {
+                opacity: 0.95;
+            }
+        }
+        @keyframes destelloFuerte {
+            0% {
+                opacity: 0;
+                transform: scale(0.3);
+                filter: brightness(0.2);
+            }
+            55% {
+                opacity: 1;
+                transform: scale(1.25);
+                filter: brightness(4);
+            }
+            80% {
+                transform: scale(1.03);
+                filter: brightness(1.7);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+                filter: brightness(1);
+            }
+        }
+        @keyframes destelloLuzFuerte {
+            0% {
+                opacity: 0;
+                transform: scale(0.4);
+            }
+            45% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(1.6);
+            }
+        }
+        @keyframes destelloPantalla {
+            0% {
+                opacity: 0;
+            }
+            15% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+            }
+        }
+        @keyframes aroAparece {
+            0% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.6);
+            }
+            60% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1.06);
+            }
+            100% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+        @keyframes aroPulso {
+            0%, 100% {
+                opacity: 0.85;
+                transform: translate(-50%, -50%) scale(1);
+            }
+            50% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1.04);
+            }
+        }
+        @keyframes girar {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        @keyframes tazaFadeOut {
+            from {
+                opacity: 1;
+                transform: translate(-50%, -50%);
+            }
+            to {
+                opacity: 0;
+                transform: translate(-50%, -50%) translateY(24px);
+            }
+        }
+        @keyframes fadeSlideUp {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -50%) translateY(40px);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%) translateY(0);
+            }
+        }
+        @keyframes pulso {
+            0%, 100% {
+                opacity: 0.75;
+            }
+            50% {
+                opacity: 1;
+            }
+        }
+        @keyframes mensajeOut {
+            to {
+                opacity: 0;
+                transform: translateX(-50%) translateY(12px);
+            }
+        }
+        @keyframes volarDestello {
+            0% {
+                opacity: 0;
+                transform: translate(var(--dx, -40vw), var(--dy, -40vh)) scale(0.5);
+                filter: brightness(0.3);
+            }
+            60% {
+                opacity: 1;
+                transform: translate(calc(var(--dx, -40vw) * 0.12), calc(var(--dy, -40vh) * 0.12)) scale(1.12);
+                filter: brightness(3.5);
+            }
+            80% {
+                transform: translate(calc(var(--dx, -40vw) * -0.04), calc(var(--dy, -40vh) * -0.04)) scale(1.02);
+                filter: brightness(1.6);
+            }
+            100% {
+                opacity: 1;
+                transform: translate(0, 0) scale(1);
+                filter: brightness(1);
+            }
+        }
+        @keyframes volarDestelloCentro {
+            0% {
+                opacity: 0;
+                transform: translate(-50%, -50%) translate(var(--dx, -2vw), var(--dy, -2vh)) scale(0.5);
+                filter: brightness(0.3);
+            }
+            60% {
+                opacity: 1;
+                transform: translate(-50%, -50%) translate(calc(var(--dx, -2vw) * 0.12), calc(var(--dy, -2vh) * 0.12)) scale(1.12);
+                filter: brightness(3.5);
+            }
+            80% {
+                transform: translate(-50%, -50%) translate(calc(var(--dx, -2vw) * -0.04), calc(var(--dy, -2vh) * -0.04)) scale(1.02);
+                filter: brightness(1.6);
+            }
+            100% {
+                opacity: 1;
+                transform: translate(-50%, -50%) translate(0, 0) scale(1);
+                filter: brightness(1);
+            }
+        }
+        @keyframes flotar {
+            0%, 100% {
+                transform: translateY(-5px);
+            }
+            50% {
+                transform: translateY(6px);
+            }
+        }
+        @keyframes tituloInicialIn {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -50%) translateY(28px);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%);
+            }
+        }
+        @keyframes tituloInicialOut {
+            to {
+                opacity: 0;
+                transform: translate(-50%, -50%) translateY(-12px);
+            }
+        }
+        @media (max-height: 580px) {
+            .escena {
+                gap: 8px;
+                padding: 2vh 4vw;
+            }
+            .rosas {
+                width: min(58vw, 38vh, 440px);
+            }
+            .titulo {
+                font-size: clamp(1rem, 5vw, 1.8rem);
+            }
+            .subtitulo {
+                font-size: clamp(0.9rem, 4.2vw, 1.4rem);
+            }
+        }
+        @media (max-width: 380px) {
+            .titulo {
+                font-size: clamp(1rem, 6vw, 1.4rem);
+            }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .taza, .mensaje, .flash, .orb1, .orb2, .titulo-inicial,
+            body.activado .taza,
+            body.activado .ramo-img,
+            body.activado .rosas::after,
+            body.activado .aro-wrap {
+                animation: none;
+            }
+            .titulo-inicial {
+                opacity: 1;
+            }
+            body.activado .titulo-inicial {
+                opacity: 0;
+            }
+            body.activado .aro-wrap {
+                opacity: 1;
+            }
+            body.activado .extra img {
+                animation: none;
+            }
+            body.activado .extra {
+                animation: none;
+                opacity: 1;
+            }
+            body.activado .subtitulo {
+                animation: none;
+                opacity: 1;
+            }
+            body.activado .titulo {
+                animation: none;
+                opacity: 1;
+            }
+            body.activado .titulo .palabra,
+            body.activado .subtitulo .palabra {
+                animation: none;
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="estrellas" id="estrellas"></div>
+    <div class="flash" id="flash"></div>
+
+    <main class="escena">
+        <h1 class="titulo" aria-label="Feliz Día de las Flores Amarillas">
+            <span class="palabra" style="--retraso: 0.25s">Feliz</span>
+            <span class="palabra" style="--retraso: 0.65s">Día</span>
+            <span class="palabra" style="--retraso: 1.05s">de</span>
+            <span class="palabra" style="--retraso: 1.45s">las</span>
+            <span class="palabra" style="--retraso: 1.85s">Flores</span>
+            <span class="palabra" style="--retraso: 2.25s">Amarillas</span>
+        </h1>
+
+        <div class="rosas">
+            <img class="ramo-img" src="img/real1-removebg-preview.png"
+                 alt="Ramo de rosas con adorno">
+            <img class="taza" src="https://openclipart.org/image/800px/352677"
+                 alt="Taza de infusión de manzanilla">
+            <div class="aro-wrap" aria-hidden="true">
+                <span class="aro"></span>
+                <span class="orbita orb1"></span>
+                <span class="orbita orb2"></span>
+            </div>
+        </div>
+
+        <p class="subtitulo" aria-label="Señorita Marina">
+            <span class="palabra" style="--retraso: 2.7s">Señorita</span>
+            <span class="palabra" style="--retraso: 3.15s">Marina</span>
+        </p>
+    </main>
+
+    <h2 class="titulo-inicial">Toma tu manzanilla</h2>
+
+    <div class="extra e3"><img src="img/real3-removebg-preview.png" alt="Arreglo floral"></div>
+    <div class="extra e4"><img src="img/real4-removebg-preview.png" alt="Arreglo floral"></div>
+    <div class="extra e5"><img src="img/real5-removebg-preview.png" alt="Arreglo floral"></div>
+    <div class="extra e6"><img src="img/real6-removebg-preview.png" alt="Arreglo floral"></div>
+    <div class="extra e7"><img src="img/real7-removebg-preview.png" alt="Arreglo floral"></div>
+    <div class="mensaje" id="mensaje">Toca para tomar tu infusión</div>
+    <audio id="musica" src="musica.mp3" loop preload="auto"></audio>
+
+    <script>
+        (function () {
+            var disparado = false;
+            var estrellas = document.getElementById('estrellas');
+            var reducido = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+            function disparar() {
+                if (disparado) return;
+                disparado = true;
+
+                var musica = document.getElementById('musica');
+                musica.currentTime = 0;
+                musica.play().catch(function () {});
+
+                var mensaje = document.getElementById('mensaje');
+                mensaje.style.animation = 'mensajeOut 0.6s ease forwards';
+
+                var taza = document.querySelector('.taza');
+                var ramo = document.querySelector('.ramo-img');
+
+                if (reducido) {
+                    taza.style.opacity = '0';
+                    ramo.style.opacity = '1';
+                    lanzarEstrellas(130, true);
+                } else {
+                    prepararExtras();
+                    document.body.classList.add('activado');
+                    lanzarFlash();
+                    lanzarEstrellas(130, false);
+                }
+            }
+
+            function prepararExtras() {
+                var extras = document.querySelectorAll('.extra');
+                var cx = window.innerWidth / 2;
+                var cy = window.innerHeight / 2;
+                for (var i = 0; i < extras.length; i++) {
+                    var r = extras[i].getBoundingClientRect();
+                    extras[i].style.setProperty('--dx', (cx - (r.left + r.width / 2)) + 'px');
+                    extras[i].style.setProperty('--dy', (cy - (r.top + r.height / 2)) + 'px');
+                }
+            }
+
+            function lanzarFlash() {
+                var flash = document.getElementById('flash');
+                flash.style.animation = 'none';
+                void flash.offsetWidth;
+                flash.style.animation = 'destelloPantalla 0.8s ease-out';
+            }
+
+            function lanzarEstrellas(n, estatico) {
+                for (var i = 0; i < n; i++) {
+                    var s = document.createElement('span');
+                    s.className = 'estrella';
+                    var tam = 2 + Math.random() * 5;
+                    s.style.width = tam + 'px';
+                    s.style.height = tam + 'px';
+                    s.style.left = (Math.random() * 100) + '%';
+                    s.style.top = (Math.random() * 100) + '%';
+                    if (estatico) {
+                        s.style.animation = 'none';
+                        s.style.opacity = '0.85';
+                    } else {
+                        s.style.setProperty('--delay', (Math.random() * 1.8).toFixed(2) + 's');
+                        s.style.setProperty('--dur', (1.5 + Math.random() * 2.5).toFixed(2) + 's');
+                    }
+                    estrellas.appendChild(s);
+                }
+            }
+
+            window.addEventListener('pointerdown', disparar);
+            window.addEventListener('click', disparar);
+        })();
+    </script>
+</body>
+</html>
