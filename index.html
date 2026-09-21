@@ -92,6 +92,30 @@
                         rgba(255, 230, 140, 0.9) 30%,
                         rgba(255, 255, 255, 0) 100%);
         }
+        #btnSonido {
+            position: fixed;
+            right: 14px;
+            bottom: 14px;
+            z-index: 10000;
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(255, 255, 255, 0.92);
+            box-shadow: 0 2px 12px rgba(120, 60, 20, 0.4);
+            color: #8a5a1f;
+            font-size: 24px;
+            line-height: 1;
+            cursor: pointer;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+            -webkit-tap-highlight-color: transparent;
+        }
+        #btnSonido.visible {
+            opacity: 1;
+            visibility: visible;
+        }
         .taza {
             position: absolute;
             left: 50%;
@@ -643,6 +667,7 @@
     <div class="extra e6"><img src="img/real6-removebg-preview.png" alt="Arreglo floral"></div>
     <div class="extra e7"><img src="img/real7-removebg-preview.png" alt="Arreglo floral"></div>
     <div class="mensaje" id="mensaje">Toca para tomar tu infusión</div>
+    <button id="btnSonido" type="button" aria-label="Activar sonido">♪</button>
     <audio id="musica" src="musica.mp3" loop preload="auto" playsinline></audio>
 
     <script>
@@ -660,17 +685,35 @@
             ];
 
             var musica = document.getElementById('musica');
+            var btnSonido = document.getElementById('btnSonido');
             var audioListo = false;
+            var ctx = null;
+            function desbloquear() {
+                try {
+                    var AC = window.AudioContext || window.webkitAudioContext;
+                    if (AC && !ctx) {
+                        ctx = new AC();
+                    }
+                    if (ctx && ctx.state === 'suspended') {
+                        ctx.resume();
+                    }
+                } catch (e) {}
+            }
             function playMusica() {
+                desbloquear();
                 if (audioListo) return;
                 audioListo = true;
                 musica.currentTime = 0;
-                musica.play().catch(function () {
+                musica.play().then(function () {
+                    btnSonido.classList.remove('visible');
+                }).catch(function () {
                     audioListo = false;
                     var reintentar = function () {
                         audioListo = true;
                         musica.currentTime = 0;
-                        musica.play().catch(function () {
+                        musica.play().then(function () {
+                            btnSonido.classList.remove('visible');
+                        }).catch(function () {
                             audioListo = false;
                         });
                         document.removeEventListener('click', reintentar);
@@ -678,12 +721,20 @@
                     document.addEventListener('click', reintentar);
                 });
             }
+            function checkAudio() {
+                setTimeout(function () {
+                    if (musica.paused && !audioListo) {
+                        btnSonido.classList.add('visible');
+                    }
+                }, 1500);
+            }
 
             function disparar() {
                 if (disparado) return;
                 disparado = true;
 
                 sembrarRamitos();
+                checkAudio();
 
                 var mensaje = document.getElementById('mensaje');
                 mensaje.style.animation = 'mensajeOut 0.6s ease forwards';
@@ -791,7 +842,13 @@
 
             window.addEventListener('pointerdown', disparar);
             document.body.addEventListener('click', playMusica);
+            document.body.addEventListener('touchend', playMusica);
             document.addEventListener('click', disparar);
+            btnSonido.addEventListener('click', function () {
+                audioListo = false;
+                playMusica();
+                btnSonido.classList.remove('visible');
+            });
         })();
     </script>
 </body>
